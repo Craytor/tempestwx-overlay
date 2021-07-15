@@ -67,7 +67,7 @@
               class="h-6 w-6 filter-white mr-2"
               src="https://tempestwx.com/images/cc-uv.svg?v=20210614b"
             />
-            {{ uv }} UV
+            {{ uv | round(1) }} UV
           </div>
         </div>
       </div>
@@ -108,7 +108,9 @@ export default {
   name: "App",
   data() {
     return {
-      deviceId: 72423,
+      apiKey: process.env.VUE_APP_API_KEY,
+      deviceIds: [45477, 46971], // mine 72423
+      stationId: 12997,
       socket: null,
       validTs: null,
       wind: {
@@ -166,23 +168,26 @@ export default {
   methods: {
     openWebSocketConnection() {
       this.socket = new WebSocket(
-        "wss://ws.weatherflow.com/swd/data?token=20422e05-c71f-446c-99ab-84b3c03ee718"
+        "wss://ws.weatherflow.com/swd/data?token=" + this.apiKey
       );
       this.socket.onopen = () => {
-        // request rapid wind updates
-        var rapid = {
-          type: "listen_rapid_start",
-          device_id: this.deviceId,
-          id: "Tempest",
-        };
-        this.socket.send(JSON.stringify(rapid));
-        // request observation updates
-        var listen = {
-          type: "listen_start",
-          device_id: this.deviceId,
-          id: "Tempest",
-        };
-        this.socket.send(JSON.stringify(listen));
+        this.deviceIds.forEach((dId) => {
+          // request observation updates
+          var listen = {
+            type: "listen_start",
+            device_id: dId,
+            id: dId + "-listen",
+          };
+          this.socket.send(JSON.stringify(listen));
+
+          // request rapid wind updates
+          var rapid = {
+            type: "listen_rapid_start",
+            device_id: dId,
+            id: dId + "-rapid",
+          };
+          this.socket.send(JSON.stringify(rapid));
+        });
       };
       this.socket.onmessage = this.onWebSocketMessage;
       this.socket.onerror = this.onWebSocketError;
@@ -315,7 +320,10 @@ export default {
     async updateCurrentConditions() {
       console.log("updating current conditions");
       let res = await axios.get(
-        "https://swd.weatherflow.com/swd/rest/better_forecast?api_key=20422e05-c71f-446c-99ab-84b3c03ee718&station_id=21713"
+        "https://swd.weatherflow.com/swd/rest/better_forecast?api_key=" +
+          this.apiKey +
+          "&station_id=" +
+          this.stationId
       );
       let currentConditions = res.data.current_conditions;
       let todayForecastInfo = res.data.forecast.daily[0];
