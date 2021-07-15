@@ -1,5 +1,8 @@
 <template>
-  <div class="w-full h-full flex flex-col justify-end">
+  <div class="w-full h-full flex flex-col justify-end relative">
+    <div class="absolute top-0 right-0 mt-10 mr-10">
+      <img class="h-28 w-auto" src="@/assets/spoutcam.png" />
+    </div>
     <div
       class="flex flex-row justify-between items-center bg-black px-4 py-2 text-white"
     >
@@ -17,7 +20,55 @@
           <h1 class="text-5xl text-shadow">
             {{ temperature | parseCAsF }}&deg;F
           </h1>
-          <h1 class="text-3xl text-shadow">{{ currentConditions.text }}</h1>
+          <h1 class="text-3xl text-shadow tracking-wide">
+            {{ currentConditions.text }}
+          </h1>
+        </div>
+        <div class="flex flex-row text-white px-20 space-x-10 mt-16 mx-auto">
+          <div class="flex flex-row items-center">
+            <img
+              class="h-8 w-8 filter-white mr-2"
+              src="https://tempestwx.com/images/sunrise.svg"
+            />
+            {{ dayInfo.sunrise | parseLocalTime }}
+          </div>
+          <div class="flex flex-row items-center">
+            <img
+              class="h-8 w-8 filter-white mr-2"
+              src="https://tempestwx.com/images/sunset.svg"
+            />
+            {{ dayInfo.sunset | parseLocalTime }}
+          </div>
+          <div class="flex flex-row items-center">
+            <img
+              class="h-5 w-5 filter-white mr-2"
+              src="https://tempestwx.com/images/cc-humidity.svg"
+            />
+            {{ humidity }}% humidity
+          </div>
+          <div class="flex flex-row items-center">
+            <img
+              id="activeIcon"
+              class="h-5 w-5 filter-white mr-2"
+              src="https://tempestwx.com/images/cc-pressure-trend-arrow.svg"
+              :data-pressure-trend="pressureTrend"
+            />
+            {{ pressure }} mb
+          </div>
+          <div class="flex flex-row items-center">
+            <img
+              class="h-5 w-5 filter-white mr-2"
+              src="https://s3.amazonaws.com/tempest.cdn/assets/better-forecast/v9/chance-rain.svg"
+            />
+            {{ rainAccumulated | mmToIn }}"
+          </div>
+          <div class="flex flex-row items-center">
+            <img
+              class="h-6 w-6 filter-white mr-2"
+              src="https://tempestwx.com/images/cc-uv.svg?v=20210614b"
+            />
+            {{ uv }} UV
+          </div>
         </div>
       </div>
       <div class="overflow-hidden w-36 h-36 flex relative mr-2">
@@ -51,6 +102,7 @@
 
 <script>
 import axios from "axios";
+import moment from "moment";
 
 export default {
   name: "App",
@@ -75,7 +127,7 @@ export default {
       },
       temperature: null,
       pressure: null,
-      pressureTrend: null,
+      pressureTrend: "rising",
       humidity: null,
       uv: null,
       illuminance: null,
@@ -84,6 +136,10 @@ export default {
       currentConditions: {
         icon: null,
         text: null,
+      },
+      dayInfo: {
+        sunrise: null,
+        sunset: null,
       },
       currentConditionsInterval: null,
     };
@@ -262,9 +318,14 @@ export default {
         "https://swd.weatherflow.com/swd/rest/better_forecast?api_key=20422e05-c71f-446c-99ab-84b3c03ee718&station_id=21713"
       );
       let currentConditions = res.data.current_conditions;
+      let todayForecastInfo = res.data.forecast.daily[0];
       this.currentConditions = {
         icon: currentConditions.icon,
         text: currentConditions.conditions,
+      };
+      this.dayInfo = {
+        sunrise: todayForecastInfo.sunrise,
+        sunset: todayForecastInfo.sunset,
       };
     },
     convertMsToMph(val) {
@@ -295,6 +356,13 @@ export default {
 
     parseCAsF(data) {
       return Math.round((data * (9 / 5) + 32) * 10) / 10;
+    },
+    parseLocalTime(time) {
+      return moment.unix(time).format("h:mm A");
+    },
+    mmToIn(mm) {
+      if (mm == null || mm == 0) return "0.00";
+      return Math.round((mm / 25.4) * 100) / 100;
     },
   },
 };
@@ -328,5 +396,19 @@ body {
 }
 .text-shadow {
   text-shadow: 1px 1px #000;
+}
+.filter-white {
+  filter: invert(100%) sepia(100%) saturate(0) hue-rotate(201deg)
+    brightness(107%) contrast(101%);
+}
+#activeIcon[data-pressure-trend="rising"] {
+  transform: rotate(-45deg);
+  -webkit-transform: rotate(-45deg);
+  -ms-transform: rotate(-45deg);
+}
+#activeIcon[data-pressure-trend="falling"] {
+  transform: rotate(45deg);
+  -webkit-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
 }
 </style>
