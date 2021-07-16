@@ -8,7 +8,7 @@
     >
       <div class="flex flex-row space-x-2">
         <img
-          class="h-40 w-40"
+          class="h-28 w-auto mx-6"
           v-if="currentConditions.icon !== null"
           :src="
             'https://s3.amazonaws.com/tempest.cdn/assets/better-forecast/v9/' +
@@ -24,7 +24,9 @@
             {{ currentConditions.text }}
           </h1>
         </div>
-        <div class="flex flex-row text-white px-20 space-x-10 mt-16 mx-auto">
+        <div
+          class="flex flex-row text-white px-20 space-x-10 mt-16 mx-auto text-lg"
+        >
           <div class="flex flex-row items-center">
             <img
               class="h-8 w-8 filter-white mr-2"
