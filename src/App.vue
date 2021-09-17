@@ -1,6 +1,11 @@
 <template>
   <div class="w-full h-full flex flex-col justify-end relative">
-    <div class="absolute top-0 right-0 mt-10 mr-10">
+    <div
+      class="absolute top-0 left-0 bg-black text-white py-2 px-4 font-semibold"
+    >
+      {{ (currentTime / 1000) | parseLocalTime }}
+    </div>
+    <div class="absolute top-0 right-0 mt-8 mr-10">
       <img class="h-28 w-auto" src="@/assets/spoutcam.png" />
     </div>
     <div
@@ -146,6 +151,8 @@ export default {
         sunset: null,
       },
       currentConditionsInterval: null,
+      currentTime: null,
+      currentTimeInterval: null,
     };
   },
   mounted() {
@@ -155,6 +162,7 @@ export default {
       this.updateCurrentConditions,
       5 * 60 * 1000
     );
+    this.currentTimeInterval = setInterval(this.updateCurrentTime, 1000);
   },
 
   destroyed() {
@@ -165,6 +173,10 @@ export default {
     if (this.currentConditionsInterval !== null) {
       clearInterval(this.currentConditionsInterval);
       this.currentConditionsInterval = null;
+    }
+    if (this.currentTimeInterval !== null) {
+      clearInterval(this.currentTimeInterval);
+      this.currentTimeInterval = null;
     }
   },
   methods: {
@@ -357,6 +369,9 @@ export default {
       if (degrees >= 281.25 && degrees < 303.75) return "WNW";
       if (degrees >= 303.75 && degrees < 326.25) return "NW";
       if (degrees >= 326.25 && degrees < 348.75) return "NNW";
+    },
+    updateCurrentTime() {
+      this.currentTime = Date.now();
     },
   },
   filters: {
