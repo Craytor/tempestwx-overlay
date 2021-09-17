@@ -1,7 +1,7 @@
 <template>
   <div class="w-full h-full flex flex-col justify-end relative">
     <div
-      class="absolute top-0 left-0 bg-black text-white py-2 px-4 font-semibold"
+      class="absolute top-0 left-0 bg-gray-900 text-white py-2 px-4 font-semibold"
     >
       {{ (currentTime / 1000) | parseLocalTime }}
     </div>
